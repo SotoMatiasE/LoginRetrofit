@@ -13,4 +13,5 @@
     <string name="main_profile">Profile</string>
 
     <string name="profile_title">User Profile</string>
+    <string name="main_error_response">Error en la respuesta</string>
 </resources>

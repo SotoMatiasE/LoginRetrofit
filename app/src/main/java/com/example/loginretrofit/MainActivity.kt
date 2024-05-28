@@ -56,17 +56,26 @@ class MainActivity : AppCompatActivity() {
         val service = retrofit.create(LoginService::class.java)
         //llamada a metodos// enqueue() manda a la cola los metodos enviados
         service.login(UserInfo(email, password)).enqueue(
-
             /*manipular la respuesta// Callback debe coincidir con el metodo de servicio*/
             object  : Callback<LoginResponse>{ //importar funciones ctrl + intro
                 override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                     //metodo sobre escrito para la respuesta exitosa
                     //Actualizar ui
-                    val result = response.body() //asi extraemos la rta TOKEN
+                    when (response.code()){
+                        200 -> { //Ok
+                            val result = response.body() //asi extraemos la rta TOKEN
+                            //Listener
+                            updateUi("${Constants.TOKEN_PROPERTY}: ${result?.token}")
+                        }
 
+                        400 -> {//Error
+                            updateUi(getString(R.string.main_error_server)) //muestra en la pantalla
+                        }
+                        else -> {
+                            updateUi(getString(R.string.main_error_response))
+                        }
+                    }
 
-                    //Listener
-                    updateUi("${Constants.TOKEN_PROPERTY}: ${result?.token}")
                 }
 
                 override fun onFailure(call: Call<LoginResponse>, response: Throwable) {
