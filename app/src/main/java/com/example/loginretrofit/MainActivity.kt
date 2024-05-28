@@ -9,7 +9,9 @@ import androidx.lifecycle.lifecycleScope
 import com.example.loginretrofit.databinding.ActivityMainBinding
 import com.example.loginretrofit.retrofit.LoginService
 import com.example.loginretrofit.retrofit.UserInfo
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -56,10 +58,13 @@ class MainActivity : AppCompatActivity() {
         //ejecutar servicio
         val service = retrofit.create(LoginService::class.java)
         //invocar servicio de login desde corrutinas
-        lifecycleScope.launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val result = service.loginUser(UserInfo(email, password))
-                updateUi("${Constants.TOKEN_PROPERTY}: ${result.token}")
+                withContext(Dispatchers.Main){
+                    updateUi("${Constants.TOKEN_PROPERTY}: ${result.token}")
+                }
+
             } catch (e: Exception) {
                 //saveCast
                 (e as? HttpException)?.let {
