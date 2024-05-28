@@ -14,4 +14,7 @@ interface LoginService {
     //Corrutinas retrofit
     @POST(Constants.API_PATH + Constants.LOGIN_PATH)
     suspend fun loginUser(@Body data: UserInfo): LoginResponse
+
+    @POST(Constants.API_PATH + Constants.REGISTER_PATH)
+    suspend fun registerUser(@Body data: UserInfo): RegisterResponse
 }

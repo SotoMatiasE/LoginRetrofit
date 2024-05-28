@@ -31,7 +31,11 @@ class MainActivity : AppCompatActivity() {
         }
         //listenner al boton
         mBinding.btnLogin.setOnClickListener {
-            login()
+            if (mBinding.swType.isChecked){
+                login()
+            }else{
+                register()
+            }
         }
 
         mBinding.btnProfile.setOnClickListener {
@@ -70,21 +74,30 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
 
-        /*//llamada a metodos// enqueue() manda a la cola los metodos enviados
-        service.login(UserInfo(email, password)).enqueue(
-            *//*manipular la respuesta// Callback debe coincidir con el metodo de servicio*//*
-            object  : Callback<LoginResponse>{ //importar funciones ctrl + intro
-                override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
-                    //metodo sobre escrito para la respuesta exitosa
-                    //Actualizar ui
-                    when (response.code()){
-                        200 -> { //Ok
-                            val result = response.body() //asi extraemos la rta TOKEN
-                            //Listener
-                            updateUi("${Constants.TOKEN_PROPERTY}: ${result?.token}")
-                        }
+    private fun register() {
+        //EXTRAER VALORES Y PASAR VALORES A jsonObjectRequest
+        val email = mBinding.etEmail.text.toString().trim()
+        val password = mBinding.etPassword.text.toString().trim()
 
+        val retrofit = Retrofit.Builder()
+            //configuracion del retrofit
+            .baseUrl(Constants.BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+        //ejecutar servicio
+        val service = retrofit.create(LoginService::class.java)
+        //invocar servicio de login desde corrutinas
+        lifecycleScope.launch {
+            try {
+                val result = service.registerUser(UserInfo(email, password))
+                updateUi("${Constants.ID_PROPERTY}: {$result.id}, " +
+                        "${Constants.TOKEN_PROPERTY}: ${result.token}")
+            } catch (e: Exception) {
+                //saveCast
+                (e as? HttpException)?.let {
+                    when (it.code()){ //MANEJO DE ERRORES
                         400 -> {//Error
                             updateUi(getString(R.string.main_error_server)) //muestra en la pantalla
                         }
@@ -92,67 +105,9 @@ class MainActivity : AppCompatActivity() {
                             updateUi(getString(R.string.main_error_response))
                         }
                     }
-
                 }
-
-                override fun onFailure(call: Call<LoginResponse>, response: Throwable) {
-                    //metodo sobre escrito para la respuesta falla
-                    Log.e("Retrofit", "Problemas con el servidor.")
-                }
-            }
-        )*/
-
-        //peticion con volley
-        /*       val typeMethod = if (mBinding.swType.isChecked) Constants.LOGIN_PATH
-                                       else Constants.REGISTER_PATH
-               //construir URL
-               val url = Constants.BASE_URL + Constants.API_PATH + typeMethod
-
-               //CONSTRUCCION DEL jsonParams
-               val jsonParams = JSONObject()
-               if (email.isNotEmpty()){
-                   jsonParams.put(Constants.EMAIL_PARAM, email)
-               }
-               if (password.isNotEmpty()){
-                   jsonParams.put(Constants.PASSWORD_PARAM, password)
-               }
-
-               val jsonObjectRequest = object : JsonObjectRequest(Method.POST, url, jsonParams,{response ->
-                   //PROCESAR RESPUESTA
-                   Log.i("response", response.toString())
-                   //Extraccion de valores
-                   val id = response.optString(Constants.ID_PROPERTY, Constants.ERROR_VALUES)
-                   val token = response.optString(Constants.TOKEN_PROPERTY, Constants.ERROR_VALUES)
-
-                   val result = if (id.equals(Constants.ERROR_VALUES)) "${Constants.TOKEN_PROPERTY}: $token"
-                       else "${Constants.ID_PROPERTY}: $id, ${Constants.TOKEN_PROPERTY}: $token"
-
-                   //Listener
-                   updateUi(result)
-               }, {
-                   //configuracion del error para que se pueda ver en la consola
-                   it.printStackTrace()
-                   if (it.networkResponse.statusCode == 400){
-                       updateUi(getString(R.string.main_error_server))
-                   }
-               }){
-                   //Body
-                   *//*override fun getBodyContentType(): String {
-                return super.getBodyContentType()
-            }
-*//*
-            //Apartado para configurar Body y Headers varia segun el backend
-            //Headers
-            override fun getHeaders(): MutableMap<String, String> {
-                val params = HashMap<String, String>()
-
-                //formato
-                params["Content-Type"] = "application/json"
-
-                return params
             }
         }
-        LoginApplication.reqResAPI.addToRequestQueue(jsonObjectRequest)*/
     }
 
     //configurar respuesta de la ui si la peticion es exitosa la interfaz cambia
