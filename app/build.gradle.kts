@@ -50,15 +50,18 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
 
 
-    //Volley
-    implementation ("com.android.volley:volley:1.2.1")
+    //Retroft
+    implementation ("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.11.0")
+
+    //Corrutinas
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
 
     //Glide
     implementation ("com.github.bumptech.glide:glide:$glideVersion")
     ksp ("com.github.bumptech.glide:ksp:$glideVersion")
 
-    //Gson
-    implementation("com.google.code.gson:gson:2.10.1")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
