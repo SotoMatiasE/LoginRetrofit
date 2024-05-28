@@ -33,11 +33,7 @@ class MainActivity : AppCompatActivity() {
         }
         //listenner al boton
         mBinding.btnLogin.setOnClickListener {
-            if (mBinding.swType.isChecked){
-                login()
-            }else{
-                register()
-            }
+            loginOrRegister()
         }
 
         mBinding.btnProfile.setOnClickListener {
@@ -45,18 +41,29 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun login() { //si presiono el btnLogin muestra la actualizacion de la ui
+    private fun loginOrRegister() {
         //EXTRAER VALORES Y PASAR VALORES A jsonObjectRequest
         val email = mBinding.etEmail.text.toString().trim()
         val password = mBinding.etPassword.text.toString().trim()
-
+        //Retrofit
         val retrofit = Retrofit.Builder()
-        //configuracion del retrofit
+            //configuracion del retrofit
             .baseUrl(Constants.BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
         //ejecutar servicio
         val service = retrofit.create(LoginService::class.java)
+
+        //Primero verifica el estado del switch
+        if (mBinding.swType.isChecked){
+            login(email, password, service)
+        }else{
+            register(email, password, service)
+        }
+    }
+
+    private fun login(email: String, password: String, service: LoginService) {
+        //si presiono el btnLogin muestra la actualizacion de la ui
         //invocar servicio de login desde corrutinas
         lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -65,31 +72,13 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 //saveCast
                 (e as? HttpException)?.let {
-                    when (it.code()){ //MANEJO DE ERRORES
-                        400 -> {//Error
-                            updateUi(getString(R.string.main_error_server)) //muestra en la pantalla
-                        }
-                        else -> {
-                            updateUi(getString(R.string.main_error_response))
-                        }
-                    }
+                    checkError(e)
                 }
             }
         }
     }
 
-    private fun register() {
-        //EXTRAER VALORES Y PASAR VALORES A jsonObjectRequest
-        val email = mBinding.etEmail.text.toString().trim()
-        val password = mBinding.etPassword.text.toString().trim()
-
-        val retrofit = Retrofit.Builder()
-            //configuracion del retrofit
-            .baseUrl(Constants.BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-        //ejecutar servicio
-        val service = retrofit.create(LoginService::class.java)
+    private fun register(email: String, password: String, service: LoginService) {
         //invocar servicio de login desde corrutinas
         lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -99,18 +88,21 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 //saveCast
                 (e as? HttpException)?.let {
-                    when (it.code()){ //MANEJO DE ERRORES
-                        400 -> {//Error
-                            updateUi(getString(R.string.main_error_server)) //muestra en la pantalla
-                        }
-                        else -> {
-                            updateUi(getString(R.string.main_error_response))
-                        }
-                    }
+                    checkError(e)
                 }
             }
         }
     }
+
+    private suspend fun checkError(e: HttpException) =
+        when (e.code()){ //MANEJO DE ERRORES
+            400 -> {//Error
+                updateUi(getString(R.string.main_error_server)) //muestra en la pantalla
+            }
+            else -> {
+                updateUi(getString(R.string.main_error_response))
+            }
+        }
 
     //configurar respuesta de la ui si la peticion es exitosa la interfaz cambia
     //adaptacion para que funcione con corrutinas
