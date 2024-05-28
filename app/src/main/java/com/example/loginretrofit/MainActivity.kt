@@ -61,10 +61,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val result = service.loginUser(UserInfo(email, password))
-                withContext(Dispatchers.Main){
-                    updateUi("${Constants.TOKEN_PROPERTY}: ${result.token}")
-                }
-
+                updateUi("${Constants.TOKEN_PROPERTY}: ${result.token}")
             } catch (e: Exception) {
                 //saveCast
                 (e as? HttpException)?.let {
@@ -116,7 +113,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     //configurar respuesta de la ui si la peticion es exitosa la interfaz cambia
-    private fun updateUi(result: String) {
+    //adaptacion para que funcione con corrutinas
+    private suspend fun updateUi(result: String) = withContext(Dispatchers.Main) {
         mBinding.tvResult.visibility = View.VISIBLE
         mBinding.tvResult.text = result
     }
