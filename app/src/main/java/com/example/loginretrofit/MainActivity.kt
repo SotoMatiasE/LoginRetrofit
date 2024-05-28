@@ -10,6 +10,7 @@ import com.example.loginretrofit.databinding.ActivityMainBinding
 import com.example.loginretrofit.retrofit.LoginService
 import com.example.loginretrofit.retrofit.UserInfo
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -56,7 +57,17 @@ class MainActivity : AppCompatActivity() {
                 val result = service.loginUser(UserInfo(email, password))
                 updateUi("${Constants.TOKEN_PROPERTY}: ${result.token}")
             } catch (e: Exception) {
-                updateUi(getString(R.string.main_error_response))
+                //saveCast
+                (e as? HttpException)?.let {
+                    when (it.code()){ //MANEJO DE ERRORES
+                        400 -> {//Error
+                            updateUi(getString(R.string.main_error_server)) //muestra en la pantalla
+                        }
+                        else -> {
+                            updateUi(getString(R.string.main_error_response))
+                        }
+                    }
+                }
             }
         }
 
