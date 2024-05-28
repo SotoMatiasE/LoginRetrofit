@@ -2,18 +2,14 @@ package com.example.loginretrofit
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.loginretrofit.databinding.ActivityMainBinding
-import com.example.loginretrofit.retrofit.LoginResponse
 import com.example.loginretrofit.retrofit.LoginService
 import com.example.loginretrofit.retrofit.UserInfo
-import org.json.JSONObject
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -54,9 +50,19 @@ class MainActivity : AppCompatActivity() {
             .build()
         //ejecutar servicio
         val service = retrofit.create(LoginService::class.java)
-        //llamada a metodos// enqueue() manda a la cola los metodos enviados
+        //invocar servicio de login desde corrutinas
+        lifecycleScope.launch {
+            try {
+                val result = service.loginUser(UserInfo(email, password))
+                updateUi("${Constants.TOKEN_PROPERTY}: ${result.token}")
+            } catch (e: Exception) {
+                updateUi(getString(R.string.main_error_response))
+            }
+        }
+
+        /*//llamada a metodos// enqueue() manda a la cola los metodos enviados
         service.login(UserInfo(email, password)).enqueue(
-            /*manipular la respuesta// Callback debe coincidir con el metodo de servicio*/
+            *//*manipular la respuesta// Callback debe coincidir con el metodo de servicio*//*
             object  : Callback<LoginResponse>{ //importar funciones ctrl + intro
                 override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                     //metodo sobre escrito para la respuesta exitosa
@@ -83,7 +89,7 @@ class MainActivity : AppCompatActivity() {
                     Log.e("Retrofit", "Problemas con el servidor.")
                 }
             }
-        )
+        )*/
 
         //peticion con volley
         /*       val typeMethod = if (mBinding.swType.isChecked) Constants.LOGIN_PATH
