@@ -91,7 +91,7 @@ class MainActivity : AppCompatActivity() {
         //ejecutar servicio
         val service = retrofit.create(LoginService::class.java)
         //invocar servicio de login desde corrutinas
-        lifecycleScope.launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val result = service.registerUser(UserInfo(email, password))
                 updateUi("${Constants.ID_PROPERTY}: {$result.id}, " +

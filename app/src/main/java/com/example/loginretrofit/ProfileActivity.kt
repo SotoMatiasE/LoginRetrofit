@@ -3,11 +3,21 @@ package com.example.loginretrofit
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.loginretrofit.databinding.ActivityProfileBinding
+import com.example.loginretrofit.retrofit.LoginService
+import com.example.loginretrofit.retrofit.UserInfo
+import com.example.loginretrofit.retrofit.UserService
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import retrofit2.HttpException
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class ProfileActivity : AppCompatActivity() {
     private lateinit var mBinding: ActivityProfileBinding
@@ -21,6 +31,24 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun loadUserProfile() {
+        val retrofit = Retrofit.Builder()
+            //configuracion del retrofit
+            .baseUrl(Constants.BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+        //ejecutar servicio
+        val service = retrofit.create(UserService::class.java)
+        //invocar servicio de login desde corrutinas
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val result = service.getSingleUsers()
+                updateUI(result.data, result.support)
+
+            } catch (e: Exception) {
+                //saveCast
+                showMessage(getString(R.string.main_error_server))
+            }
+        }
 
         val url = Constants.BASE_URL + Constants.API_PATH + Constants.USERS_PATH + Constants.TWO_PATH
 
@@ -35,6 +63,7 @@ class ProfileActivity : AppCompatActivity() {
             val supportJson = response.optJSONObject(Constants.SUPPORT_PROPERTY)?.toString()
             val support: Support = gson.fromJson(supportJson, Support::class.java)
 
+            ACTUALIZAMOS LA UI CON EL USUARIO Y EL SOPORTE RECIBIDO Y MAPEADO CON JSON
             updateUI(user, support)
         }, {
             it.printStackTrace()
@@ -52,7 +81,7 @@ class ProfileActivity : AppCompatActivity() {
 
         LoginApplication.reqResAPI.addToRequestQueue(jsonObjectRequest)*/
     }
-    private fun updateUI(user: User, support: Support) {
+    private suspend fun updateUI(user: User, support: Support) = withContext(Dispatchers.Main){
         with(mBinding) {
             tvFullName.text = user.getFullName()
             tvEmail.text = user.email
